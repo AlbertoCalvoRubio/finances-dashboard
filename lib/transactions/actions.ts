@@ -3,6 +3,7 @@
 import prisma from "../db";
 import { Prisma } from "@prisma/client";
 import { CreateTransaction, TransactionsFilters } from "./types";
+import { revalidatePath } from "next/cache";
 
 export async function getTransactions(
   {
@@ -59,6 +60,7 @@ export async function createTransactions(
     ...transaction,
     accountId: accountId,
   }));
+  revalidatePath("/transactions");
 
   return prisma.transaction.createMany({
     data: transactionsWithAccountId,
