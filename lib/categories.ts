@@ -155,7 +155,7 @@ export const CATEGORY_MAP = {
     },
     VEHICLE_MAINTENANCE: {
       displayName: "Vehicle Maintenance",
-      keywords: ["maintenance", "car repair", "vehicle"],
+      keywords: ["maintenance", "car repair", "vehicle", "motorbike"],
       icon: "🚗",
       color: "#FFEB3B",
     },
