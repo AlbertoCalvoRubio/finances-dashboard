@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import prisma from "./db";
 
 type CreateAccount = {
@@ -13,5 +14,8 @@ export async function getAccounts() {
 }
 
 export async function createAccount(account: CreateAccount) {
-  return prisma.account.create({ data: account });
+  const createdAccount = await prisma.account.create({ data: account });
+  revalidatePath("/");
+
+  return createdAccount;
 }
