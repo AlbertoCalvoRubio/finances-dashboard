@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Sidenav from "../components/Sidenav";
 import { Toaster } from "sonner";
+import { SidebarProvider, SidebarTrigger } from "../components/ui/sidebar";
+import { AppSidebar } from "../components/app-sidebar";
 
 export const metadata: Metadata = {
   title: "Albertonic",
@@ -17,8 +18,13 @@ export default function RootLayout({
     <html lang="en" className="h-full">
       <body className="h-full antialiased">
         <div className="flex h-full overflow-y-scroll">
-          <Sidenav />
-          <div className="mx-2 h-full w-full">{children}</div>
+          <SidebarProvider>
+            <AppSidebar />
+            <main className="mx-2 h-full w-full">
+              <SidebarTrigger />
+              {children}
+            </main>
+          </SidebarProvider>
         </div>
         <Toaster />
       </body>
