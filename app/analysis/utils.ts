@@ -21,6 +21,7 @@ export async function extractSearchParams(
   const transactionType =
     (searchParams.transactionType as TransactionType) ?? "Expense";
   const category = searchParams.category as string | undefined;
+  const account = searchParams.account as string | undefined;
 
   return {
     searchParams,
@@ -30,6 +31,7 @@ export async function extractSearchParams(
     month,
     transactionType,
     category,
+    account,
   };
 }
 
@@ -37,9 +39,15 @@ export async function getTransactionsSum(
   transactionType: TransactionType,
   year: number,
   month?: number,
+  account?: string,
 ) {
   const transactionsSumByCategory = (
-    await getTransactionsSumByCategory({ type: transactionType, year, month })
+    await getTransactionsSumByCategory({
+      type: transactionType,
+      year,
+      month,
+      account,
+    })
   ).map((aggregation) => ({
     category: aggregation.category,
     amount: aggregation._sum.amount ?? 0,

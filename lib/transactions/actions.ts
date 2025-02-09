@@ -112,6 +112,7 @@ export async function getTransactionsSumByCategory({
   type,
   year = new Date().getFullYear(),
   month,
+  account,
 }: TransactionsFilters) {
   const minDate = new Date(Date.UTC(year, month !== undefined ? month : 0, 1));
   const maxDate = new Date(
@@ -134,6 +135,7 @@ export async function getTransactionsSumByCategory({
             lte: maxDate,
           },
         },
+        { accountId: account },
       ],
     },
     orderBy: {
@@ -148,6 +150,7 @@ export async function getTransactionsSumByYearMonthAndType(
   startingDate: Date,
   endingDate: Date,
   category?: string,
+  account?: string,
 ) {
   return prisma.$queryRaw<
     {
@@ -166,6 +169,8 @@ export async function getTransactionsSumByYearMonthAndType(
     WHERE editedDate >= ${startingDate}
       AND editedDate <= ${endingDate}
       ${category ? Prisma.sql`AND category = ${category}` : Prisma.empty}
+      ${account ? Prisma.sql`AND accountId = ${account}` : Prisma.empty}
+
     GROUP BY type,
       strftime('%m', datetime(editedDate/1000, 'unixepoch')),
       strftime('%Y', datetime(editedDate/1000, 'unixepoch'));

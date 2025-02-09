@@ -14,13 +14,15 @@ import TransactionsTabs from "./transactions-tabs";
 import TransactionsBarChart from "./transactions-bar-chart";
 import TransactionsTotalTable from "./transactions-total-table";
 import { getCategoryKeyByDisplayName } from "../../lib/categories";
+import AccountSelector from "../../components/selector/AccountSelector";
+import { getAccounts } from "../../lib/account";
 
 export default async function Page({
   searchParams: searchParamsPromise,
 }: {
   searchParams: PageSearchParams;
 }) {
-  const { category, month, year, page, pageSize, searchParams } =
+  const { category, month, year, page, pageSize, searchParams, account } =
     await extractSearchParams(searchParamsPromise);
 
   const categoryKey = category
@@ -33,6 +35,7 @@ export default async function Page({
     startingDate,
     endingDate,
     categoryKey,
+    account,
   );
 
   const groupedData = groupExpenseIncomeByMonth(data, year);
@@ -54,6 +57,7 @@ export default async function Page({
       month,
       type: TRANSACTIONS.INCOME,
       category: categoryKey,
+      account,
     },
     page,
     pageSize,
@@ -63,6 +67,7 @@ export default async function Page({
     month,
     type: TRANSACTIONS.INCOME,
     category: categoryKey,
+    account,
   });
 
   const expensesTransactions = await getTransactions(
@@ -71,6 +76,7 @@ export default async function Page({
       month,
       type: TRANSACTIONS.EXPENSE,
       category: categoryKey,
+      account,
     },
     page,
     pageSize,
@@ -81,6 +87,7 @@ export default async function Page({
     month,
     type: TRANSACTIONS.EXPENSE,
     category: categoryKey,
+    account,
   });
 
   const previousDateSearchParams = new URLSearchParams({
@@ -97,16 +104,30 @@ export default async function Page({
     TRANSACTIONS.EXPENSE,
     year,
     month,
+    account,
   );
   const incomeTransactionsByCategory = await getTransactionsSum(
     TRANSACTIONS.INCOME,
     year,
     month,
+    account,
   );
+
+  const accounts = await getAccounts();
+  const accountSelectorValues = accounts.map(({ id, iban, alias }) => ({
+    id,
+    displayName: alias || iban,
+  }));
 
   return (
     <div className="flex flex-col items-center justify-center space-y-4">
       <div className="flex w-full flex-col space-y-4">
+        <div className="flex w-full justify-center p-6">
+          <AccountSelector
+            accounts={accountSelectorValues}
+            selectedAccount={account}
+          />
+        </div>
         <TransactionsBarChart
           previousDateSearchParams={previousDateSearchParams}
           nextDateSearchParams={nextDateSearchParams}
