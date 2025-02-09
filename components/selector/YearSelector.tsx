@@ -11,10 +11,10 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 
 type YearSelectorProps = {
-  defaultYear: number;
+  selectedYear: number;
 };
 
-export default function YearSelector({ defaultYear }: YearSelectorProps) {
+export default function YearSelector({ selectedYear }: YearSelectorProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -28,12 +28,14 @@ export default function YearSelector({ defaultYear }: YearSelectorProps) {
     { length: 3 },
     (_, i) => new Date().getFullYear() - i,
   ).map((year) => (
-    <SelectItem key={year} value={year.toString()}>
+    <SelectItem key={year.toString()} value={year.toString()}>
       {year}
     </SelectItem>
   ));
+  const defaultYear = new Date().getFullYear();
   return (
     <Select
+      value={selectedYear.toString()}
       defaultValue={defaultYear.toString()}
       onValueChange={handleYearChange}
     >

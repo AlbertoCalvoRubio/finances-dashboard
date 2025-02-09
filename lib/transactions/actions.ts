@@ -11,6 +11,7 @@ export async function getTransactions(
     category,
     year = new Date().getFullYear(),
     month,
+    account,
   }: TransactionsFilters,
   page: number = 1,
   pageSize: number = 10,
@@ -34,6 +35,9 @@ export async function getTransactions(
       },
       {
         category,
+      },
+      {
+        accountId: account,
       },
     ],
   };
@@ -72,6 +76,7 @@ export async function getTransactionsCount({
   year = new Date().getFullYear(),
   month,
   category,
+  account,
 }: TransactionsFilters) {
   const minDate = new Date(Date.UTC(year, month !== undefined ? month : 0, 1));
   const maxDate = new Date(
@@ -90,6 +95,7 @@ export async function getTransactionsCount({
         },
       },
       { category },
+      { accountId: account },
     ],
   };
 

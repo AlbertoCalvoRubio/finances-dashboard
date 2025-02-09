@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import prisma from "./db";
 
 type CreateAccount = {
-  alias: string;
+  alias?: string;
   iban: string;
   balance: number;
 };

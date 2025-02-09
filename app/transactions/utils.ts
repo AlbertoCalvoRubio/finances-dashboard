@@ -1,12 +1,4 @@
-import { TransactionType } from "../../lib/transactions/types";
-
-export function buildTransactionsPageUrl(
-  page: number,
-  pageSize: number,
-  modal: string,
-) {
-  return `?${new URLSearchParams({ page: page.toString(), pageSize: pageSize.toString(), modal })}`;
-}
+import { TRANSACTIONS, TransactionType } from "../../lib/transactions/types";
 
 export function extractSearchParams(searchParams: {
   [key: string]: string | string[] | undefined;
@@ -22,8 +14,9 @@ export function extractSearchParams(searchParams: {
     ? parseInt(searchParams.month as string)
     : new Date().getMonth();
   const transactionType =
-    (searchParams.transactionType as TransactionType) ?? "Expense";
+    (searchParams.transactionType as TransactionType) ?? TRANSACTIONS.EXPENSE;
   const category = searchParams.category as string | undefined;
+  const account = searchParams.account as string | undefined;
 
-  return { page, pageSize, year, month, transactionType, category };
+  return { page, pageSize, year, month, transactionType, category, account };
 }

@@ -12,6 +12,7 @@ export type TransactionsFilters = {
   year?: number;
   month?: number;
   category?: string;
+  account?: string;
 };
 
 export type CreateTransaction = Omit<Transaction, "id" | "accountId">;

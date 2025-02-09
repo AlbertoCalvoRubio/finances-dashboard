@@ -20,7 +20,7 @@ import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   iban: z.string(),
-  alias: z.string(),
+  alias: z.string().optional(),
   balance: z.coerce.number(),
 });
 
@@ -34,7 +34,6 @@ export function AccountForm({ onSubmit }: AccountFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       iban: "",
-      alias: "",
       balance: 0,
     },
   });
