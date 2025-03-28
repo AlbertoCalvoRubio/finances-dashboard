@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import prisma from "./db";
+import { db } from "./db/instance";
+import { account } from "./db/schema";
 
 type CreateAccount = {
   alias?: string;
@@ -10,7 +12,8 @@ type CreateAccount = {
 };
 
 export async function getAccounts() {
-  return prisma.account.findMany();
+  //return prisma.account.findMany();
+  return db.select().from(account);
 }
 
 export async function createAccount(account: CreateAccount) {
