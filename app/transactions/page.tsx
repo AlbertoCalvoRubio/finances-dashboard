@@ -3,7 +3,7 @@ import {
   getTransactionsCount,
 } from "../../lib/transactions/actions";
 import Pagination from "../../components/Pagination";
-import { DataTable } from "./data-table";
+import { DataTable } from "../../components/ui/data-table";
 import { columns } from "./columns";
 import YearSelector from "../../components/selector/YearSelector";
 import MonthSelector from "../../components/selector/MonthSelector";

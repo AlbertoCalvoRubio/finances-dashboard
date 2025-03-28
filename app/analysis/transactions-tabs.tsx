@@ -9,7 +9,7 @@ import {
   TabsTrigger,
 } from "../../components/ui/tabs";
 import { columns } from "../transactions/columns";
-import { DataTable } from "../transactions/data-table";
+import { DataTable } from "../../components/ui/data-table";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   CategoryData,

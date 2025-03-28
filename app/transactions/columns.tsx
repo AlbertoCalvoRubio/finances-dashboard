@@ -67,7 +67,6 @@ export const columns: ColumnDef<Transaction>[] = [
     header: "Comment",
     accessorKey: "comment",
   },
-
   {
     id: "actions",
     cell: ({ row }) => {
