@@ -21,6 +21,7 @@ export default function MonthSelector({ defaultMonth }: MonthSelectorProps) {
   const handleMonthChange = (month: string) => {
     const newParams = new URLSearchParams(searchParams.toString());
     newParams.set("month", month);
+    newParams.delete("page");
     router.push(`?${newParams.toString()}`, { scroll: false });
   };
 

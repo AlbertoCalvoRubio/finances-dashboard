@@ -21,6 +21,7 @@ export default function YearSelector({ selectedYear }: YearSelectorProps) {
   const handleYearChange = (year: string) => {
     const newParams = new URLSearchParams(searchParams.toString());
     newParams.set("year", year);
+    newParams.delete("page");
     router.push(`?${newParams.toString()}`, { scroll: false });
   };
 
