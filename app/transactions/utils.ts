@@ -6,7 +6,7 @@ export function extractSearchParams(searchParams: {
   const page = searchParams.page ? parseInt(searchParams.page as string) : 1;
   const pageSize = searchParams.pageSize
     ? parseInt(searchParams.pageSize as string)
-    : 10;
+    : 100;
   const year = searchParams.year
     ? parseInt(searchParams.year as string)
     : new Date().getFullYear();
