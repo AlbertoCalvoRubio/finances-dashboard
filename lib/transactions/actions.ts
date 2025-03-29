@@ -2,7 +2,7 @@
 
 import { db } from "../db/instance"; // Update the import to use the existing instance
 import { transactionTable } from "../db/schema";
-import { eq, and, gte, lte, sql, desc, SQL } from "drizzle-orm";
+import { eq, and, gte, lte, sql, desc, SQL, sum } from "drizzle-orm";
 import { CreateTransaction, TransactionsFilters } from "./types";
 
 export async function getTransactions(
@@ -129,7 +129,7 @@ export async function getTransactionsSumByCategory({
   return db
     .select({
       category: transactionTable.category,
-      sum: sql<number>`sum(${transactionTable.amount})`.as("sum"),
+      sum: sum(transactionTable.amount).as("sum"),
     })
     .from(transactionTable)
     .where(query)
