@@ -37,8 +37,7 @@ yarn-error.log*
 next-env.d.ts
 
 # db
-prisma/*.db
-prisma/*-journal
+*.db
 
 # env
 .env

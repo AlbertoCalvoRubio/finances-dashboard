@@ -1,9 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import prisma from "./db";
 import { db } from "./db/instance";
-import { account } from "./db/schema";
+import { accountTable } from "./db/schema";
 
 type CreateAccount = {
   alias?: string;
@@ -12,12 +11,14 @@ type CreateAccount = {
 };
 
 export async function getAccounts() {
-  //return prisma.account.findMany();
-  return db.select().from(account);
+  return db.select().from(accountTable);
 }
 
 export async function createAccount(account: CreateAccount) {
-  const createdAccount = await prisma.account.create({ data: account });
+  const createdAccount = await db
+    .insert(accountTable)
+    .values(account)
+    .returning();
   revalidatePath("/");
 
   return createdAccount;

@@ -50,7 +50,7 @@ export async function getTransactionsSum(
     })
   ).map((aggregation) => ({
     category: aggregation.category,
-    amount: aggregation._sum.amount ?? 0,
+    amount: aggregation.sum ?? 0,
   }));
 
   return transactionsSumByCategory.map((categoryEntry) => {

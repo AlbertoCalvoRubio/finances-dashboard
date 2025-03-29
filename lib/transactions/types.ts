@@ -1,4 +1,4 @@
-import { Transaction } from "@prisma/client";
+import { Transaction } from "../db/schema";
 
 export const TRANSACTIONS = {
   EXPENSE: "EXPENSE",

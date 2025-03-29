@@ -28,8 +28,8 @@ export default async function Page({
   const categoryKey = category
     ? getCategoryKeyByDisplayName(category)
     : undefined;
-  const startingDate = new Date(Date.UTC(year, 0, 1));
-  const endingDate = new Date(Date.UTC(year, 11, 31));
+  const startingDate = new Date(year, 0, 1);
+  const endingDate = new Date(year, 11, 31);
 
   const data = await getTransactionsSumByYearMonthAndType(
     startingDate,

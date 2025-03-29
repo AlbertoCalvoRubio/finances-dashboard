@@ -1,9 +1,9 @@
 "use server";
 
-import prisma from "../db";
-import { Prisma } from "@prisma/client";
+import { db } from "../db/instance"; // Update the import to use the existing instance
+import { transactionTable } from "../db/schema";
+import { eq, and, gte, lte, sql, desc, SQL } from "drizzle-orm";
 import { CreateTransaction, TransactionsFilters } from "./types";
-import { revalidatePath } from "next/cache";
 
 export async function getTransactions(
   {
@@ -16,44 +16,38 @@ export async function getTransactions(
   page: number = 1,
   pageSize: number = 10,
 ) {
-  const minDate = new Date(Date.UTC(year, month !== undefined ? month : 0, 1));
+  const minDate = new Date(year, month !== undefined ? month : 0, 1);
   const maxDate = new Date(
-    Date.UTC(year, month !== undefined ? month + 1 : 12) - 1,
+    new Date(year, month !== undefined ? month + 1 : 12).getTime() - 1,
   );
 
-  const query: Record<string, unknown> = {
-    AND: [
-      {
-        editedDate: {
-          gte: minDate,
-        },
-      },
-      {
-        editedDate: {
-          lte: maxDate,
-        },
-      },
-      {
-        category,
-      },
-      {
-        accountId: account,
-      },
-    ],
-  };
+  let query = and(
+    gte(transactionTable.editedDate, minDate),
+    lte(transactionTable.editedDate, maxDate),
+  );
 
-  if (type) {
-    query["type"] = type;
+  if (account) {
+    query = and(query, eq(transactionTable.accountId, account));
   }
 
-  return prisma.transaction.findMany({
-    where: query,
-    skip: (page - 1) * pageSize,
-    take: pageSize,
-    orderBy: {
-      editedDate: "desc",
-    },
-  });
+  if (category) {
+    query = and(query, eq(transactionTable.category, category));
+  }
+
+  if (type) {
+    query = and(query, eq(transactionTable.type, type));
+  }
+
+  const transactions = await db
+    .select()
+    .from(transactionTable)
+    .where(query)
+    .limit(pageSize)
+    .offset((page - 1) * pageSize)
+    .orderBy(desc(transactionTable.editedDate));
+  console.log(transactions);
+
+  return transactions;
 }
 
 export async function createTransactions(
@@ -64,11 +58,11 @@ export async function createTransactions(
     ...transaction,
     accountId: accountId,
   }));
-  revalidatePath("/transactions");
 
-  return prisma.transaction.createMany({
-    data: transactionsWithAccountId,
-  });
+  return db
+    .insert(transactionTable)
+    .values(transactionsWithAccountId)
+    .returning();
 }
 
 export async function getTransactionsCount({
@@ -78,34 +72,34 @@ export async function getTransactionsCount({
   category,
   account,
 }: TransactionsFilters) {
-  const minDate = new Date(Date.UTC(year, month !== undefined ? month : 0, 1));
+  const minDate = new Date(year, month !== undefined ? month : 0, 1);
   const maxDate = new Date(
-    Date.UTC(year, month !== undefined ? month + 1 : 12) - 1,
+    new Date(year, month !== undefined ? month + 1 : 12).getTime() - 1,
   );
-  const query: Record<string, unknown> = {
-    AND: [
-      {
-        editedDate: {
-          gte: minDate,
-        },
-      },
-      {
-        editedDate: {
-          lte: maxDate,
-        },
-      },
-      { category },
-      { accountId: account },
-    ],
-  };
 
-  if (type) {
-    query["type"] = type;
+  let query = and(
+    gte(transactionTable.editedDate, minDate),
+    lte(transactionTable.editedDate, maxDate),
+  );
+
+  if (account) {
+    query = and(query, eq(transactionTable.accountId, account));
   }
 
-  return prisma.transaction.count({
-    where: query,
-  });
+  if (category) {
+    query = and(query, eq(transactionTable.category, category));
+  }
+
+  if (type) {
+    query = and(query, eq(transactionTable.type, type));
+  }
+
+  const result = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(transactionTable)
+    .where(query);
+
+  return result[0].count;
 }
 
 export async function getTransactionsSumByCategory({
@@ -114,36 +108,33 @@ export async function getTransactionsSumByCategory({
   month,
   account,
 }: TransactionsFilters) {
-  const minDate = new Date(Date.UTC(year, month !== undefined ? month : 0, 1));
+  const minDate = new Date(year, month !== undefined ? month : 0, 1);
   const maxDate = new Date(
-    Date.UTC(year, month !== undefined ? month + 1 : 12) - 1,
+    new Date(year, month !== undefined ? month + 1 : 12).getTime() - 1,
   );
 
-  return prisma.transaction.groupBy({
-    by: ["category"],
-    _sum: { amount: true },
-    where: {
-      AND: [
-        { type },
-        {
-          editedDate: {
-            gte: minDate,
-          },
-        },
-        {
-          editedDate: {
-            lte: maxDate,
-          },
-        },
-        { accountId: account },
-      ],
-    },
-    orderBy: {
-      _sum: {
-        amount: "desc",
-      },
-    },
-  });
+  let query = and(
+    gte(transactionTable.editedDate, minDate),
+    lte(transactionTable.editedDate, maxDate),
+  );
+
+  if (account) {
+    query = and(query, eq(transactionTable.accountId, account));
+  }
+
+  if (type) {
+    query = and(query, eq(transactionTable.type, type));
+  }
+
+  return db
+    .select({
+      category: transactionTable.category,
+      sum: sql<number>`sum(${transactionTable.amount})`.as("sum"),
+    })
+    .from(transactionTable)
+    .where(query)
+    .groupBy(transactionTable.category)
+    .orderBy(desc(sql`sum`));
 }
 
 export async function getTransactionsSumByYearMonthAndType(
@@ -152,55 +143,62 @@ export async function getTransactionsSumByYearMonthAndType(
   category?: string,
   account?: string,
 ) {
-  return prisma.$queryRaw<
-    {
-      type: string;
-      month: string;
-      year: string;
-      total: number;
-    }[]
-  >`
-    SELECT
-      type,
-      strftime('%m', datetime(editedDate/1000, 'unixepoch')) AS month,
-      strftime('%Y', datetime(editedDate/1000, 'unixepoch')) AS year,
-      SUM(amount) AS total
-    FROM "Transaction"
-    WHERE editedDate >= ${startingDate}
-      AND editedDate <= ${endingDate}
-      ${category ? Prisma.sql`AND category = ${category}` : Prisma.empty}
-      ${account ? Prisma.sql`AND accountId = ${account}` : Prisma.empty}
+  let filter: SQL | undefined;
+  if (category) {
+    filter = eq(transactionTable.category, category);
+  }
 
-    GROUP BY type,
-      strftime('%m', datetime(editedDate/1000, 'unixepoch')),
-      strftime('%Y', datetime(editedDate/1000, 'unixepoch'));
-  `;
+  if (account) {
+    filter = and(filter, eq(transactionTable.accountId, account));
+  }
+
+  const query = and(
+    gte(transactionTable.editedDate, startingDate),
+    lte(transactionTable.editedDate, endingDate),
+    filter,
+  );
+
+  return db
+    .select({
+      type: transactionTable.type,
+      month:
+        sql<string>`strftime('%m', datetime(${transactionTable.editedDate}/1000, 'unixepoch'))`.as(
+          "month",
+        ),
+      year: sql<string>`strftime('%Y', datetime(${transactionTable.editedDate}/1000, 'unixepoch'))`.as(
+        "year",
+      ),
+      total: sql<number>`SUM(${transactionTable.amount})`.as("total"),
+    })
+    .from(transactionTable)
+    .where(query)
+    .groupBy(
+      transactionTable.type,
+      sql`strftime('%m', datetime(${transactionTable.editedDate}/1000, 'unixepoch'))`,
+      sql`strftime('%Y', datetime(${transactionTable.editedDate}/1000, 'unixepoch'))`,
+    );
 }
 
 export async function getTransactionById(id: string) {
-  return prisma.transaction.findUnique({
-    where: {
-      id,
-    },
-  });
+  const result = await db
+    .select()
+    .from(transactionTable)
+    .where(eq(transactionTable.id, id))
+    .limit(1);
+
+  return result[0] || null;
 }
 
 export async function updateTransaction(
   id: string,
   data: Partial<CreateTransaction>,
 ) {
-  return prisma.transaction.update({
-    where: {
-      id,
-    },
-    data,
-  });
+  return db
+    .update(transactionTable)
+    .set(data)
+    .where(eq(transactionTable.id, id));
 }
 
 export async function deleteTransaction(id: string) {
-  return prisma.transaction.delete({
-    where: {
-      id,
-    },
-  });
+  return db.delete(transactionTable).where(eq(transactionTable.id, id));
 }
