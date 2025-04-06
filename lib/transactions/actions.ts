@@ -1,13 +1,23 @@
 "use server";
 
 import { db } from "../db/instance"; // Update the import to use the existing instance
-import { transactionTable } from "../db/schema";
-import { eq, and, gte, lte, sql, desc, SQL, sum } from "drizzle-orm";
+import { categoryTable, transactionTable } from "../db/schema";
+import {
+  eq,
+  and,
+  gte,
+  lte,
+  sql,
+  desc,
+  SQL,
+  sum,
+  getTableColumns,
+} from "drizzle-orm";
 import { CreateTransaction, TransactionsFilters } from "./types";
 
 export async function getTransactions(
   {
-    type,
+    categoryType: type,
     category,
     year = new Date().getFullYear(),
     month,
@@ -35,17 +45,17 @@ export async function getTransactions(
   }
 
   if (type) {
-    query = and(query, eq(transactionTable.type, type));
+    query = and(query, eq(categoryTable.type, type));
   }
 
   const transactions = await db
-    .select()
+    .select(getTableColumns(transactionTable))
     .from(transactionTable)
+    .innerJoin(categoryTable, eq(transactionTable.category, categoryTable.name))
     .where(query)
     .limit(pageSize)
     .offset((page - 1) * pageSize)
     .orderBy(desc(transactionTable.editedDate));
-  console.log(transactions);
 
   return transactions;
 }
@@ -66,7 +76,7 @@ export async function createTransactions(
 }
 
 export async function getTransactionsCount({
-  type,
+  categoryType: type,
   year = new Date().getFullYear(),
   month,
   category,
@@ -91,19 +101,20 @@ export async function getTransactionsCount({
   }
 
   if (type) {
-    query = and(query, eq(transactionTable.type, type));
+    query = and(query, eq(categoryTable.type, type));
   }
 
   const result = await db
-    .select({ count: sql<number>`count(*)` })
+    .selectDistinct({ id: transactionTable.id, count: sql<number>`count(*)` })
     .from(transactionTable)
+    .innerJoin(categoryTable, eq(transactionTable.category, categoryTable.name))
     .where(query);
 
   return result[0].count;
 }
 
 export async function getTransactionsSumByCategory({
-  type,
+  categoryType: type,
   year = new Date().getFullYear(),
   month,
   account,
@@ -123,15 +134,18 @@ export async function getTransactionsSumByCategory({
   }
 
   if (type) {
-    query = and(query, eq(transactionTable.type, type));
+    query = and(query, eq(categoryTable.type, type));
   }
 
   return db
     .select({
       category: transactionTable.category,
       sum: sum(transactionTable.amount).as("sum"),
+      icon: categoryTable.icon,
+      color: categoryTable.color,
     })
     .from(transactionTable)
+    .innerJoin(categoryTable, eq(transactionTable.category, categoryTable.name))
     .where(query)
     .groupBy(transactionTable.category)
     .orderBy(desc(sql`sum`));
@@ -160,7 +174,7 @@ export async function getTransactionsSumByYearMonthAndType(
 
   return db
     .select({
-      type: transactionTable.type,
+      type: categoryTable.type,
       month:
         sql<string>`strftime('%m', datetime(${transactionTable.editedDate}/1000, 'unixepoch'))`.as(
           "month",
@@ -171,9 +185,10 @@ export async function getTransactionsSumByYearMonthAndType(
       total: sql<number>`SUM(${transactionTable.amount})`.as("total"),
     })
     .from(transactionTable)
+    .innerJoin(categoryTable, eq(transactionTable.category, categoryTable.name))
     .where(query)
     .groupBy(
-      transactionTable.type,
+      categoryTable.type,
       sql`strftime('%m', datetime(${transactionTable.editedDate}/1000, 'unixepoch'))`,
       sql`strftime('%Y', datetime(${transactionTable.editedDate}/1000, 'unixepoch'))`,
     );

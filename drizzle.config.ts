@@ -7,4 +7,5 @@ export default defineConfig({
   dbCredentials: {
     url: process.env.DATABASE_URL!,
   },
+  verbose: !!process.env.DB_QUERY_LOGS,
 });

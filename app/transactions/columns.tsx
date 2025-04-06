@@ -12,10 +12,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
-import { findCategoryByCategoryKey } from "../../lib/categories";
 import { deleteTransaction } from "../../lib/transactions/actions";
 import { useRouter } from "next/navigation";
-import { Transaction } from "@prisma/client";
+import { Transaction } from "../../lib/db/schema";
 
 function formatDate(date: Date): string {
   return date.toLocaleDateString("en-GB", {
@@ -42,18 +41,7 @@ export const columns: ColumnDef<Transaction>[] = [
   { header: "Edited Date", accessorKey: "editedDate", cell: formatCellDate },
   {
     header: "Category",
-    cell: ({ row }) => {
-      const transaction = row.original;
-      const category = findCategoryByCategoryKey(transaction.category);
-      if (!category) {
-        throw new Error(`Category not found for key ${transaction.category}`);
-      }
-      return (
-        <div>
-          <span>{`${category.icon} ${category.displayName}`}</span>
-        </div>
-      );
-    },
+    accessorKey: "category",
   },
   {
     header: "Amount",

@@ -7,14 +7,15 @@ import { DataTable } from "../../components/ui/data-table";
 import { columns } from "./columns";
 import YearSelector from "../../components/selector/YearSelector";
 import MonthSelector from "../../components/selector/MonthSelector";
-import TransactionTypeSelector from "../../components/selector/TransactionTypeSelector";
+import TransactionTypeSelector from "../../components/selector/CategoryTypeSelector";
 import { extractSearchParams } from "./utils";
 import { PageSearchParams } from "../../lib/types";
 import CategorySelector from "../../components/selector/CategorySelector";
 import UploadTransactionsCsvDialog from "../../components/UploadTransactionsCsvDialog";
 import { getAccounts } from "../../lib/account";
-import { TRANSACTIONS } from "../../lib/transactions/types";
 import AccountSelector from "../../components/selector/AccountSelector";
+import { CATEGORY_TYPE } from "../../lib/categories/types";
+import { getAllCategories } from "../../lib/categories/actions";
 
 export default async function Page({
   searchParams: searchParamsPromise,
@@ -22,11 +23,12 @@ export default async function Page({
   searchParams: PageSearchParams;
 }) {
   const searchParams = await searchParamsPromise;
-  const { page, pageSize, year, month, transactionType, category, account } =
+  const { page, pageSize, year, month, categoryType, category, account } =
     extractSearchParams(searchParams);
 
+  const categories = await getAllCategories();
   const transactions = await getTransactions(
-    { year, month, type: transactionType, category, account },
+    { year, month, categoryType, category, account },
     page,
     pageSize,
   );
@@ -35,7 +37,7 @@ export default async function Page({
     year,
     month,
     category,
-    type: transactionType,
+    categoryType,
     account,
   });
 
@@ -55,9 +57,12 @@ export default async function Page({
             accounts={accountsSelectorValues}
           />
           <TransactionTypeSelector
-            defaultTransactionType={TRANSACTIONS.EXPENSE}
+            defaultCategoryType={CATEGORY_TYPE.EXPENSE}
           />
-          <CategorySelector defaultCategory={category} />
+          <CategorySelector
+            defaultCategory={category}
+            categories={categories}
+          />
           <YearSelector selectedYear={year} />
           <MonthSelector defaultMonth={month} />
         </div>

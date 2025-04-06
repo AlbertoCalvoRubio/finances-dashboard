@@ -19,18 +19,17 @@ function transformCsv(csvData: string, type: CsvProvider) {
   }
 }
 
-export function processFile(
+export async function processFile(
   file: File,
   type: CsvProvider,
 ): Promise<CreateTransaction[]> {
-  return new Promise((resolve, reject) => {
+  const csvData = await new Promise<string | undefined>((resolve, reject) => {
     if (file.name.endsWith(".csv") && file.type === "text/csv") {
       const reader = new FileReader();
       reader.onload = () => {
         try {
           const csvData = reader.result as string;
-          const transactions = transformCsv(csvData, type);
-          resolve(transactions);
+          resolve(csvData);
         } catch (error) {
           console.error(error);
           reject(error);
@@ -39,7 +38,15 @@ export function processFile(
       reader.onerror = () => reject(reader.error);
       reader.readAsText(file);
     } else {
-      resolve([]);
+      resolve(undefined);
     }
   });
+  if (!csvData) {
+    throw new Error("Invalid CSV file");
+  }
+
+  const transactions = await transformCsv(csvData, type);
+  console.log("Transactions from CSV:", transactions);
+
+  return transactions;
 }

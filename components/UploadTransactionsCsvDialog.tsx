@@ -22,8 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { Account } from "@prisma/client";
 import { toast } from "sonner";
+import { Account } from "../lib/db/schema";
 
 type UploadTransactionsCsvDialogProps = {
   accounts: Account[];

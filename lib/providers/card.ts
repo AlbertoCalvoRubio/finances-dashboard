@@ -1,8 +1,8 @@
 import { parse } from "@formkit/tempo";
 import { z } from "zod";
 import Papa from "papaparse";
-import { extractCategory } from "../categories";
 import { CreateTransaction } from "../transactions/types";
+import { categoriseTransaction } from "../categories/actions";
 
 const floatNumberProcessedOptional = z.preprocess((val) => {
   const valParsed = parseFloat(val as string);
@@ -31,31 +31,36 @@ const csvParsedTransactionSchema = z.object({
 
 const transactionsSchema = z.array(csvParsedTransactionSchema);
 
-function transformParsedCsvToTransactions(
+async function transformParsedCsvToTransactions(
   data: unknown[],
-): CreateTransaction[] {
+): Promise<CreateTransaction[]> {
   const result = transactionsSchema.safeParse(data);
   if (!result.success) {
     console.error(result.error);
     return [];
   }
 
-  return result.data.map((item) => {
-    const date = parse(item["Trade date"], "YYYY-MM-DD");
-    const amount = item.Credit || item.Debit || 0;
-    const concept = item.Description1 || "";
-    const category = extractCategory(concept, amount);
+  return Promise.all(
+    result.data.map(async (item) => {
+      const date = parse(item["Trade date"], "YYYY-MM-DD");
+      const amount = item.Credit || item.Debit || 0;
+      const concept = item.Description1 || "";
+      const category = await categoriseTransaction(concept, amount);
+      if (!category) {
+        throw new Error("Category not found");
+      }
 
-    return {
-      type: amount > 0 ? "INCOME" : "EXPENSE",
-      date,
-      editedDate: date,
-      category,
-      amount,
-      concept,
-      comment: "",
-    };
-  });
+      return {
+        type: amount > 0 ? "INCOME" : "EXPENSE",
+        date,
+        editedDate: date,
+        category: category.name,
+        amount,
+        concept,
+        comment: "",
+      };
+    }),
+  );
 }
 
 export function transformBank1CardCsvData(csvData: string) {

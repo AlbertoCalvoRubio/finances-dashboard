@@ -1,4 +1,4 @@
-import { Account } from "@prisma/client";
+import { Account } from "../lib/db/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import {
   Carousel,

@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Transaction } from "@prisma/client";
 import { updateTransaction } from "../lib/transactions/actions";
 import { toast } from "sonner";
 import {
@@ -24,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { CATEGORY_MAP, getTypeFromCategory } from "../lib/categories";
+import { Category, Transaction } from "../lib/db/schema";
 
 const formSchema = z.object({
   comment: z.string().optional(),
@@ -34,9 +33,13 @@ const formSchema = z.object({
 
 interface TransactionFormProps {
   transaction: Transaction;
+  categories: Category[];
 }
 
-export function TransactionForm({ transaction }: TransactionFormProps) {
+export function TransactionForm({
+  transaction,
+  categories,
+}: TransactionFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -51,10 +54,6 @@ export function TransactionForm({ transaction }: TransactionFormProps) {
       editedDate: values.editedDate
         ? new Date(Date.parse(values.editedDate))
         : undefined,
-      type:
-        values.category !== undefined
-          ? getTypeFromCategory(values.category)
-          : undefined,
     };
 
     updateTransaction(transaction.id, newValues)
@@ -93,16 +92,6 @@ export function TransactionForm({ transaction }: TransactionFormProps) {
           />
         </div>
         <div>
-          <FormLabel>Type</FormLabel>
-          <Input
-            id="type"
-            className="w-auto"
-            readOnly
-            disabled
-            value={transaction.type}
-          />
-        </div>
-        <div>
           <FormLabel>Concept</FormLabel>
           <Input
             id="concept"
@@ -133,36 +122,35 @@ export function TransactionForm({ transaction }: TransactionFormProps) {
                   <SelectItem disabled key="Income" value="income">
                     {"Income"}
                   </SelectItem>
-                  {Object.entries(CATEGORY_MAP.INCOME).map(
-                    ([categoryKey, { displayName, icon }]) => (
-                      <SelectItem key={categoryKey} value={categoryKey}>
-                        {`${icon} ${displayName}`}
+                  {categories
+                    .filter((category) => category.type == "INCOME")
+                    .map(({ name, icon }) => (
+                      <SelectItem key={name} value={name}>
+                        {`${icon} ${name}`}
                       </SelectItem>
-                    ),
-                  )}
+                    ))}
                   <SelectItem disabled key="Expense" value="expense">
                     {"Expense"}
                   </SelectItem>
-                  {Object.entries(CATEGORY_MAP.EXPENSE).map(
-                    ([categoryKey, { displayName, icon }]) => (
-                      <SelectItem key={categoryKey} value={categoryKey}>
-                        {`${icon} ${displayName}`}
+                  {categories
+                    .filter((category) => category.type == "EXPENSE")
+                    .map(({ name, icon }) => (
+                      <SelectItem key={name} value={name}>
+                        {`${icon} ${name}`}
                       </SelectItem>
-                    ),
-                  )}
+                    ))}
                   <SelectItem disabled key="Excluded" value="excluded">
                     {"Excluded"}
                   </SelectItem>
-                  {Object.entries(CATEGORY_MAP.EXCLUDED).map(
-                    ([categoryKey, { displayName, icon }]) => (
-                      <SelectItem key={categoryKey} value={categoryKey}>
-                        {`${icon} ${displayName}`}
+                  {categories
+                    .filter((category) => category.type == "EXCLUDED")
+                    .map(({ name, icon }) => (
+                      <SelectItem key={name} value={name}>
+                        {`${icon} ${name}`}
                       </SelectItem>
-                    ),
-                  )}
+                    ))}
                 </SelectContent>
               </Select>
-
               <FormMessage />
             </FormItem>
           )}

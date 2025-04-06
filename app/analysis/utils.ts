@@ -1,6 +1,5 @@
-import { findCategoryByCategoryKey } from "../../lib/categories";
+import { CATEGORY_TYPE, CategoryType } from "../../lib/categories/types";
 import { getTransactionsSumByCategory } from "../../lib/transactions/actions";
-import { TRANSACTIONS, TransactionType } from "../../lib/transactions/types";
 import { PageSearchParams } from "../../lib/types";
 
 export async function extractSearchParams(
@@ -18,8 +17,8 @@ export async function extractSearchParams(
   const month = searchParams.month
     ? parseInt(searchParams.month as string)
     : undefined;
-  const transactionType =
-    (searchParams.transactionType as TransactionType) ?? "Expense";
+  const categoryType =
+    (searchParams.categoryType as CategoryType) ?? CATEGORY_TYPE.EXPENSE;
   const category = searchParams.category as string | undefined;
   const account = searchParams.account as string | undefined;
 
@@ -29,45 +28,34 @@ export async function extractSearchParams(
     pageSize,
     year,
     month,
-    transactionType,
+    categoryType,
     category,
     account,
   };
 }
 
 export async function getTransactionsSum(
-  transactionType: TransactionType,
+  categoryType: CategoryType,
   year: number,
   month?: number,
   account?: string,
 ) {
   const transactionsSumByCategory = (
     await getTransactionsSumByCategory({
-      type: transactionType,
+      categoryType,
       year,
       month,
       account,
     })
   ).map((aggregation) => ({
-    category: aggregation.category,
-    amount: aggregation.sum ?? 0,
+    ...aggregation,
+    amount: typeof aggregation.sum === "string" ? Number(aggregation.sum) : 0,
   }));
 
-  return transactionsSumByCategory.map((categoryEntry) => {
-    const category = findCategoryByCategoryKey(categoryEntry.category);
-    if (!category) {
-      throw new Error(`Category not found for key ${categoryEntry.category}`);
-    }
-
-    const color = category?.color
-      ? category.color
-      : `#${Math.floor(Math.random() * 16777215).toString(16)}`;
-    const icon = category?.icon;
-    const categoryDisplayName = category?.displayName;
-
+  return transactionsSumByCategory.map(({ category, icon, color, amount }) => {
     return {
-      category: categoryDisplayName,
-      amount: Math.abs(categoryEntry.amount),
+      category,
+      amount: Math.abs(amount),
       fill: color,
       icon,
     };
@@ -90,11 +78,11 @@ export function groupExpenseIncomeByMonth(
     const monthData = data.filter((item) => item.month === month);
 
     const totalExpense = monthData
-      .filter((item) => item.type === TRANSACTIONS.EXPENSE)
+      .filter((item) => item.type === CATEGORY_TYPE.EXPENSE)
       .reduce((acc, item) => acc + item.total, 0);
 
     const totalIncome = monthData
-      .filter((item) => item.type === TRANSACTIONS.INCOME)
+      .filter((item) => item.type === CATEGORY_TYPE.INCOME)
       .reduce((acc, item) => acc + item.total, 0);
 
     groupedData.push({

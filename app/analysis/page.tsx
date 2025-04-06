@@ -9,13 +9,12 @@ import {
   getTransactionsSum,
   groupExpenseIncomeByMonth,
 } from "./utils";
-import { TRANSACTIONS } from "../../lib/transactions/types";
 import TransactionsTabs from "./transactions-tabs";
 import TransactionsBarChart from "./transactions-bar-chart";
 import TransactionsTotalTable from "./transactions-total-table";
-import { getCategoryKeyByDisplayName } from "../../lib/categories";
 import AccountSelector from "../../components/selector/AccountSelector";
 import { getAccounts } from "../../lib/account";
+import { CATEGORY_TYPE } from "../../lib/categories/types";
 
 export default async function Page({
   searchParams: searchParamsPromise,
@@ -25,16 +24,13 @@ export default async function Page({
   const { category, month, year, page, pageSize, searchParams, account } =
     await extractSearchParams(searchParamsPromise);
 
-  const categoryKey = category
-    ? getCategoryKeyByDisplayName(category)
-    : undefined;
   const startingDate = new Date(year, 0, 1);
   const endingDate = new Date(year, 11, 31);
 
   const data = await getTransactionsSumByYearMonthAndType(
     startingDate,
     endingDate,
-    categoryKey,
+    category,
     account,
   );
 
@@ -55,8 +51,8 @@ export default async function Page({
     {
       year,
       month,
-      type: TRANSACTIONS.INCOME,
-      category: categoryKey,
+      categoryType: CATEGORY_TYPE.INCOME,
+      category,
       account,
     },
     page,
@@ -65,8 +61,8 @@ export default async function Page({
   const totalIncomeTransactions = await getTransactionsCount({
     year,
     month,
-    type: TRANSACTIONS.INCOME,
-    category: categoryKey,
+    categoryType: CATEGORY_TYPE.INCOME,
+    category,
     account,
   });
 
@@ -74,8 +70,8 @@ export default async function Page({
     {
       year,
       month,
-      type: TRANSACTIONS.EXPENSE,
-      category: categoryKey,
+      categoryType: CATEGORY_TYPE.EXPENSE,
+      category,
       account,
     },
     page,
@@ -85,8 +81,8 @@ export default async function Page({
   const totalExpensesTransactions = await getTransactionsCount({
     year,
     month,
-    type: TRANSACTIONS.EXPENSE,
-    category: categoryKey,
+    categoryType: CATEGORY_TYPE.EXPENSE,
+    category,
     account,
   });
 
@@ -101,13 +97,13 @@ export default async function Page({
   });
 
   const expensesTransactionsByCategory = await getTransactionsSum(
-    TRANSACTIONS.EXPENSE,
+    CATEGORY_TYPE.EXPENSE,
     year,
     month,
     account,
   );
   const incomeTransactionsByCategory = await getTransactionsSum(
-    TRANSACTIONS.INCOME,
+    CATEGORY_TYPE.INCOME,
     year,
     month,
     account,

@@ -1,6 +1,6 @@
 "use client";
 
-import { CATEGORIES } from "../../lib/categories";
+import { Category } from "../../lib/db/schema";
 import {
   Select,
   SelectContent,
@@ -12,11 +12,13 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 
 type CategorySelectorProps = {
+  categories: Category[];
   defaultCategory?: string;
 };
 
 export default function CategorySelector({
   defaultCategory,
+  categories,
 }: CategorySelectorProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -33,9 +35,9 @@ export default function CategorySelector({
     router.push(`?${newParams.toString()}`, { scroll: false });
   };
 
-  const selectItems = CATEGORIES.map(([category, { displayName, icon }]) => (
-    <SelectItem key={category} value={category}>
-      {`${icon} ${displayName}`}
+  const selectItems = categories.map(({ name, icon }) => (
+    <SelectItem key={name} value={name}>
+      {`${icon} ${name}`}
     </SelectItem>
   ));
   return (

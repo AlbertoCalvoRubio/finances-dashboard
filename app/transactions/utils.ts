@@ -1,4 +1,4 @@
-import { TRANSACTIONS, TransactionType } from "../../lib/transactions/types";
+import { CATEGORY_TYPE, CategoryType } from "../../lib/categories/types";
 
 export function extractSearchParams(searchParams: {
   [key: string]: string | string[] | undefined;
@@ -13,10 +13,10 @@ export function extractSearchParams(searchParams: {
   const month = searchParams.month
     ? parseInt(searchParams.month as string)
     : new Date().getMonth();
-  const transactionType =
-    (searchParams.transactionType as TransactionType) ?? TRANSACTIONS.EXPENSE;
+  const categoryType =
+    (searchParams.categoryType as CategoryType) ?? CATEGORY_TYPE.EXPENSE;
   const category = searchParams.category as string | undefined;
   const account = searchParams.account as string | undefined;
 
-  return { page, pageSize, year, month, transactionType, category, account };
+  return { page, pageSize, year, month, categoryType, category, account };
 }
