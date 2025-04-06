@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "format": "prettier app components",
-    "format:fix": "prettier --write app components"
+    "format:fix": "prettier --write app components",
+    "seed": "tsx --env-file=.env ./drizzle/seed.ts"
   },
   "dependencies": {
     "@formkit/tempo": "0.1.2",
@@ -61,6 +62,7 @@
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.8",
     "tailwindcss": "^3.4.13",
+    "tsx": "^4.19.3",
     "typescript": "^5"
   },
   "pnpm": {

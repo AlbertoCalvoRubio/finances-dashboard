@@ -31,11 +31,13 @@ export async function categoriseTransaction(
 ): Promise<Category | undefined> {
   let category: Category | undefined;
   if (amount <= 0) {
-    category = await findCategoryByTextAndType(text, "EXPENSE");
+    category =
+      (await findCategoryByTextAndType(text, "EXPENSE")) ??
+      (await findCategoryByTextAndType(text, "EXCLUDED"));
   } else if (amount > 0) {
-    category = await findCategoryByTextAndType(text, "INCOME");
-  } else {
-    category = await findCategoryByTextAndType(text, "EXCLUDED");
+    category =
+      (await findCategoryByTextAndType(text, "INCOME")) ??
+      (await findCategoryByTextAndType(text, "EXCLUDED"));
   }
 
   return category;

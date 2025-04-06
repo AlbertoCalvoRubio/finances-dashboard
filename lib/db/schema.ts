@@ -60,6 +60,7 @@ export const categoryTable = sqliteTable(
   ],
 );
 export type Category = typeof categoryTable.$inferSelect;
+export type CategoryInsert = typeof categoryTable.$inferInsert;
 
 export const categoriesKeywordsTable = sqliteTable("CategoriesKeywords", {
   id: integer().primaryKey(),

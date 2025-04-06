@@ -18,7 +18,7 @@ const csvParsedTransactionSchema = z.object({
 
 const transactionsSchema = z.array(csvParsedTransactionSchema);
 
-function transformParsedCsvToTransactions(
+async function transformParsedCsvToTransactions(
   data: unknown[],
 ): Promise<CreateTransaction[]> {
   const result = transactionsSchema.safeParse(data);
@@ -27,7 +27,7 @@ function transformParsedCsvToTransactions(
     throw new Error("Error parsing CSV data");
   }
 
-  return Promise.all(
+  return await Promise.all(
     result.data.map(async (item) => {
       const date = parse(item["Purchase date"], "DD.MM.YYYY");
       const amount = -item.Amount;

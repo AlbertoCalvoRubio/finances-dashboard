@@ -1,4 +1,4 @@
-import { ChartPie, Home, List } from "lucide-react";
+import { ChartPie, Home, List, Tags } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -25,6 +25,11 @@ const items = [
     title: "Analysis",
     url: "/analysis",
     icon: ChartPie,
+  },
+  {
+    title: "Categories",
+    url: "/categories",
+    icon: Tags,
   },
 ];
 
