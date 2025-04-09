@@ -1,4 +1,4 @@
-import { Transaction } from "@prisma/client";
+import { Transaction } from "./db/schema";
 
 export type Column = keyof Omit<Transaction, "id" | "type">;
 

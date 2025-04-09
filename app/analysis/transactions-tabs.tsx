@@ -1,6 +1,5 @@
 "use client";
 
-import { Transaction } from "@prisma/client";
 import Pagination from "../../components/Pagination";
 import {
   Tabs,
@@ -15,6 +14,7 @@ import {
   CategoryData,
   SummaryByCategoryPieChart,
 } from "../../components/SummaryByCategoryPieChart";
+import { Transaction } from "../../lib/db/schema";
 
 type TransactionsTabsProps = {
   incomeTransactions: Transaction[];
