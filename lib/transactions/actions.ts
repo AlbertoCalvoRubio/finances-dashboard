@@ -211,7 +211,8 @@ export async function updateTransaction(
   return db
     .update(transactionTable)
     .set(data)
-    .where(eq(transactionTable.id, id));
+    .where(eq(transactionTable.id, id))
+    .returning();
 }
 
 export async function deleteTransaction(id: string) {
